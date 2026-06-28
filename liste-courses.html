@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+<title>Liste de courses</title>
+<link rel="manifest" href="#" />
+<meta name="theme-color" content="#16a34a" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="Courses" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --green: #16a34a;
+    --green-light: #dcfce7;
+    --green-mid: #86efac;
+    --bg: #f8fafc;
+    --surface: #ffffff;
+    --border: #e2e8f0;
+    --border-strong: #cbd5e1;
+    --text: #0f172a;
+    --text-2: #475569;
+    --text-3: #94a3b8;
+    --danger: #ef4444;
+    --radius: 14px;
+    --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.05);
+    --shadow-md: 0 4px 12px rgba(0,0,0,.10);
+  }
+
+  html, body { height: 100%; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── ONBOARDING ── */
+  #screen-onboarding {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    min-height: 100vh; padding: 2rem; text-align: center; background: var(--bg);
+  }
+
+  .ob-icon {
+    width: 80px; height: 80px; border-radius: 24px;
+    background: var(--green-light); display: flex; align-items: center;
+    justify-content: center; margin: 0 auto 1.5rem; font-size: 36px;
+  }
+
+  .ob-title {
+    font-size: 24px; font-weight: 700; color: var(--text);
+    letter-spacing: -0.02em; margin-bottom: 0.5rem;
+  }
+
+  .ob-sub {
+    font-size: 15px; color: var(--text-2); margin-bottom: 2rem; line-height: 1.5;
+    max-width: 300px;
+  }
+
+  .ob-input {
+    width: 100%; max-width: 320px; font-size: 17px; padding: 13px 16px;
+    border-radius: var(--radius); border: 1.5px solid var(--border-strong);
+    background: var(--surface); color: var(--text); text-align: center;
+    outline: none; transition: border-color .15s; margin-bottom: 1rem;
+    box-shadow: var(--shadow);
+  }
+  .ob-input:focus { border-color: var(--green); }
+  .ob-input::placeholder { color: var(--text-3); }
+
+  .btn-primary {
+    background: var(--green); color: #fff; border: none;
+    border-radius: var(--radius); padding: 13px 32px;
+    font-size: 16px; font-weight: 600; cursor: pointer;
+    transition: opacity .15s, transform .1s; width: 100%; max-width: 320px;
+    box-shadow: 0 2px 8px rgba(22,163,74,.35);
+  }
+  .btn-primary:hover { opacity: .88; }
+  .btn-primary:active { transform: scale(.98); }
+  .btn-primary:disabled { opacity: .4; cursor: default; }
+
+  /* ── MAIN APP ── */
+  #screen-main { display: none; min-height: 100vh; flex-direction: column; }
+
+  /* Header */
+  .app-header {
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: 14px 20px; display: flex; align-items: center;
+    justify-content: space-between; position: sticky; top: 0; z-index: 10;
+    box-shadow: 0 1px 0 var(--border);
+  }
+
+  .header-brand { display: flex; align-items: center; gap: 10px; }
+  .header-icon { font-size: 24px; }
+  .header-title { font-size: 18px; font-weight: 700; letter-spacing: -0.02em; }
+
+  .user-chip {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--green-light); border-radius: 100px;
+    padding: 6px 12px 6px 6px;
+  }
+
+  .avatar {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--green); color: #fff;
+    font-size: 12px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .user-name { font-size: 13px; font-weight: 600; color: var(--green); }
+
+  /* Body */
+  .app-body { flex: 1; padding: 20px; max-width: 600px; margin: 0 auto; width: 100%; }
+
+  /* Add form */
+  .add-form {
+    display: flex; gap: 10px; margin-bottom: 1.5rem;
+    background: var(--surface); border-radius: var(--radius);
+    border: 1.5px solid var(--border);
+    padding: 8px 8px 8px 16px;
+    box-shadow: var(--shadow);
+    transition: border-color .15s;
+  }
+  .add-form:focus-within { border-color: var(--green); }
+
+  .add-input {
+    flex: 1; font-size: 16px; border: none; background: transparent;
+    color: var(--text); outline: none; padding: 4px 0;
+  }
+  .add-input::placeholder { color: var(--text-3); }
+
+  .add-btn {
+    background: var(--green); color: #fff; border: none;
+    border-radius: 10px; width: 42px; height: 42px;
+    font-size: 22px; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: opacity .15s, transform .1s; flex-shrink: 0;
+    font-weight: 300; line-height: 1;
+  }
+  .add-btn:hover { opacity: .85; }
+  .add-btn:active { transform: scale(.92); }
+
+  /* Status bar */
+  .status-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .count-label { font-size: 13px; color: var(--text-3); font-weight: 500; }
+
+  .sync-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--green); display: inline-block;
+    box-shadow: 0 0 0 3px rgba(22,163,74,.2);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 3px rgba(22,163,74,.2); }
+    50% { box-shadow: 0 0 0 6px rgba(22,163,74,.05); }
+  }
+  .sync-dot.offline { background: var(--text-3); box-shadow: none; animation: none; }
+
+  /* Item list */
+  .item-list { display: flex; flex-direction: column; gap: 8px; }
+
+  .item {
+    display: flex; align-items: center; gap: 14px;
+    background: var(--surface); border-radius: var(--radius);
+    border: 1px solid var(--border); padding: 12px 14px;
+    box-shadow: var(--shadow);
+    animation: slideIn .18s ease;
+    transition: opacity .2s;
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .item.checking { opacity: 0; transform: scale(.95); transition: all .3s ease; }
+
+  .check-btn {
+    width: 26px; height: 26px; border-radius: 50%;
+    border: 2px solid var(--border-strong); background: transparent;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; transition: all .15s; color: #fff; font-size: 13px;
+  }
+  .check-btn:hover { border-color: var(--green); background: var(--green-light); }
+  .check-btn.done { border-color: var(--green); background: var(--green); }
+
+  .item-content { flex: 1; min-width: 0; }
+  .item-name { font-size: 16px; color: var(--text); font-weight: 500; line-height: 1.3; }
+  .item-by {
+    display: flex; align-items: center; gap: 5px; margin-top: 3px;
+  }
+  .item-avatar {
+    width: 14px; height: 14px; border-radius: 50%;
+    font-size: 8px; font-weight: 700; color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .item-author { font-size: 11px; color: var(--text-3); }
+
+  .del-btn {
+    background: none; border: none; cursor: pointer; color: var(--text-3);
+    font-size: 18px; padding: 4px; border-radius: 8px;
+    transition: color .12s, background .12s; line-height: 1;
+    opacity: 0;
+  }
+  .item:hover .del-btn { opacity: 1; }
+  .del-btn:hover { color: var(--danger); background: #fee2e2; }
+
+  /* Empty state */
+  .empty {
+    text-align: center; padding: 3rem 1rem;
+    color: var(--text-3); font-size: 14px; line-height: 1.8;
+  }
+  .empty-icon { font-size: 48px; display: block; margin-bottom: 12px; opacity: .5; }
+
+  /* Loading */
+  #screen-loading {
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh; flex-direction: column; gap: 16px;
+  }
+  .spinner {
+    width: 36px; height: 36px; border: 3px solid var(--green-light);
+    border-top-color: var(--green); border-radius: 50%;
+    animation: spin .7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { font-size: 14px; color: var(--text-3); }
+
+  /* Toast */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+    background: var(--text); color: #fff; padding: 10px 20px;
+    border-radius: 100px; font-size: 13px; font-weight: 500;
+    transition: transform .25s ease; z-index: 100; white-space: nowrap;
+    pointer-events: none;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  @media (max-width: 480px) {
+    .app-body { padding: 16px; }
+    .item-name { font-size: 15px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Loading -->
+<div id="screen-loading">
+  <div class="spinner"></div>
+  <div class="loading-text">Chargement…</div>
+</div>
+
+<!-- Onboarding -->
+<div id="screen-onboarding" style="display:none">
+  <div class="ob-icon">🛒</div>
+  <h1 class="ob-title">Liste de courses</h1>
+  <p class="ob-sub">Comment tu t'appelles ? Ton prénom s'affichera sur les produits que tu ajoutes.</p>
+  <input class="ob-input" id="ob-name" type="text" placeholder="Ton prénom" maxlength="20" autocomplete="off" autocorrect="off" />
+  <button class="btn-primary" id="ob-btn" disabled>C'est parti 🎉</button>
+</div>
+
+<!-- Main -->
+<div id="screen-main">
+  <header class="app-header">
+    <div class="header-brand">
+      <span class="header-icon">🛒</span>
+      <span class="header-title">Courses</span>
+    </div>
+    <div class="user-chip">
+      <div class="avatar" id="hdr-avatar">?</div>
+      <span class="user-name" id="hdr-name">…</span>
+    </div>
+  </header>
+
+  <div class="app-body">
+    <div class="add-form">
+      <input class="add-input" id="add-input" type="text" placeholder="Ajouter un produit…" maxlength="80" autocomplete="off" />
+      <button class="add-btn" id="add-btn" aria-label="Ajouter">+</button>
+    </div>
+
+    <div class="status-bar">
+      <span class="count-label" id="count-label">Chargement…</span>
+      <span class="sync-dot" id="sync-dot" title="Synchronisé en temps réel"></span>
+    </div>
+
+    <div class="item-list" id="item-list"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getFirestore, collection, addDoc, deleteDoc, doc,
+  onSnapshot, serverTimestamp, query, orderBy
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+// ── Config Firebase ──────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyDqQz3T0bS0EVlc-K9a50wEtxfJ9no_Akk",
+  authDomain: "liste-courses-89fea.firebaseapp.com",
+  projectId: "liste-courses-89fea",
+  storageBucket: "liste-courses-89fea.firebasestorage.app",
+  messagingSenderId: "783212790887",
+  appId: "1:783212790887:web:204a8cf9b5d095c60540c2"
+};
+
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+const COL = "items";
+
+// ── Helpers ──────────────────────────────────────────────────────
+const NAME_KEY = "courses_user_name";
+let userName = "";
+
+function esc(s) {
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+function initials(n) { return (n || "?").trim().charAt(0).toUpperCase(); }
+
+const PALETTE = ["#16a34a","#0ea5e9","#f59e0b","#8b5cf6","#ef4444","#ec4899","#14b8a6","#f97316"];
+function avatarColor(name) {
+  let h = 0; for (const c of name) h = (h * 31 + c.charCodeAt(0)) & 0xffffffff;
+  return PALETTE[Math.abs(h) % PALETTE.length];
+}
+
+function showToast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 2200);
+}
+
+// ── Screens ──────────────────────────────────────────────────────
+function show(id) {
+  ["screen-loading","screen-onboarding","screen-main"].forEach(s => {
+    const el = document.getElementById(s);
+    if (s === id) { el.style.display = s === "screen-main" ? "flex" : "flex"; el.style.flexDirection = "column"; }
+    else el.style.display = "none";
+  });
+}
+
+// ── Onboarding ───────────────────────────────────────────────────
+const obName = document.getElementById("ob-name");
+const obBtn  = document.getElementById("ob-btn");
+
+obName.addEventListener("input", () => { obBtn.disabled = !obName.value.trim(); });
+obName.addEventListener("keydown", e => { if (e.key === "Enter" && obName.value.trim()) startApp(obName.value.trim()); });
+obBtn.addEventListener("click", () => { if (obName.value.trim()) startApp(obName.value.trim()); });
+
+function startApp(name) {
+  userName = name.trim();
+  localStorage.setItem(NAME_KEY, userName);
+  initMain();
+}
+
+// ── Main ─────────────────────────────────────────────────────────
+function initMain() {
+  // Header
+  const color = avatarColor(userName);
+  const av = document.getElementById("hdr-avatar");
+  av.textContent = initials(userName);
+  av.style.background = color;
+  document.getElementById("hdr-name").textContent = userName;
+
+  show("screen-main");
+
+  // Add form
+  const input = document.getElementById("add-input");
+  document.getElementById("add-btn").addEventListener("click", () => addItem(input.value));
+  input.addEventListener("keydown", e => { if (e.key === "Enter") addItem(input.value); });
+
+  // Realtime listener
+  const q = query(collection(db, COL), orderBy("createdAt", "desc"));
+  onSnapshot(q, snapshot => {
+    const items = [];
+    snapshot.forEach(d => items.push({ id: d.id, ...d.data() }));
+    renderList(items);
+    document.getElementById("sync-dot").classList.remove("offline");
+  }, () => {
+    document.getElementById("sync-dot").classList.add("offline");
+    showToast("⚠️ Connexion perdue, nouvelle tentative…");
+  });
+}
+
+// ── Add ───────────────────────────────────────────────────────────
+async function addItem(raw) {
+  const name = raw.trim();
+  if (!name) return;
+  document.getElementById("add-input").value = "";
+  document.getElementById("add-input").focus();
+  try {
+    await addDoc(collection(db, COL), {
+      name,
+      addedBy: userName,
+      createdAt: serverTimestamp()
+    });
+  } catch(e) {
+    showToast("❌ Impossible d'ajouter l'article");
+  }
+}
+
+// ── Delete ────────────────────────────────────────────────────────
+async function deleteItem(id, el) {
+  el.classList.add("checking");
+  setTimeout(async () => {
+    try { await deleteDoc(doc(db, COL, id)); }
+    catch(e) { el.classList.remove("checking"); showToast("❌ Erreur lors de la suppression"); }
+  }, 300);
+}
+
+// ── Render ────────────────────────────────────────────────────────
+function renderList(items) {
+  const list  = document.getElementById("item-list");
+  const label = document.getElementById("count-label");
+
+  if (!items.length) {
+    label.textContent = "Aucun article";
+    list.innerHTML = `<div class="empty"><span class="empty-icon">🧺</span>La liste est vide.<br>Ajoute quelque chose !</div>`;
+    return;
+  }
+
+  label.textContent = `${items.length} article${items.length > 1 ? "s" : ""}`;
+
+  // Preserve existing DOM nodes to avoid flicker
+  const existing = {};
+  list.querySelectorAll(".item").forEach(el => { existing[el.dataset.id] = el; });
+
+  const newIds = new Set(items.map(i => i.id));
+
+  // Remove stale
+  Object.keys(existing).forEach(id => {
+    if (!newIds.has(id)) existing[id].remove();
+  });
+
+  // Insert / reorder
+  items.forEach((item, idx) => {
+    if (existing[item.id]) {
+      // move to correct position
+      const ref = list.children[idx];
+      if (ref !== existing[item.id]) list.insertBefore(existing[item.id], ref || null);
+      return;
+    }
+    const color = avatarColor(item.addedBy || "?");
+    const el = document.createElement("div");
+    el.className = "item";
+    el.dataset.id = item.id;
+    el.innerHTML = `
+      <button class="check-btn" aria-label="Marquer comme acheté">✓</button>
+      <div class="item-content">
+        <div class="item-name">${esc(item.name)}</div>
+        <div class="item-by">
+          <div class="item-avatar" style="background:${color}">${initials(item.addedBy)}</div>
+          <span class="item-author">${esc(item.addedBy || "?")}</span>
+        </div>
+      </div>
+      <button class="del-btn" aria-label="Supprimer">✕</button>
+    `;
+    el.querySelector(".check-btn").addEventListener("click", () => deleteItem(item.id, el));
+    el.querySelector(".del-btn").addEventListener("click", () => deleteItem(item.id, el));
+
+    const ref = list.children[idx];
+    list.insertBefore(el, ref || null);
+  });
+}
+
+// ── Boot ──────────────────────────────────────────────────────────
+const saved = localStorage.getItem(NAME_KEY);
+if (saved) { userName = saved; show("screen-main"); initMain(); }
+else        { show("screen-onboarding"); }
+</script>
+</body>
+</html>
